@@ -2,7 +2,7 @@
 
 CoreDNS Plugins related to edns
 
-# [setecs](plugin/setecs/README.md)
+# setecs
 
-Setecs is CoreDNS Plugin, Set EDNS according to client source location 
+[setecs](plugin/setecs/README.md) is CoreDNS Plugin, Set EDNS according to client source location 
 
