@@ -35,37 +35,37 @@ func NewSetEcs() *SetEcs {
 
 func (se *SetEcs) MatchEcsTable(ipstr string) net.IP {
 	se.ecsTablesLock.RLock()
+	defer se.ecsTablesLock.RUnlock()
 	for _, table := range se.ecsTables {
 		ecsip, ok := table.dict[ipstr]
 		if ok {
 			return ecsip
 		}
 	}
-	se.ecsTablesLock.RUnlock()
 	return nil
 }
 
 func (se *SetEcs) MatchEcsBinding(ip net.IP) net.IP {
 	se.ecsBindingsLock.RLock()
+	defer se.ecsBindingsLock.RUnlock()
 	for _, bind := range se.ecsBindings {
 		if bind.existIp(ip) {
 			return bind.ecsip
 		}
 	}
-	se.ecsBindingsLock.RUnlock()
 	return nil
 }
 
 func (se *SetEcs) addEcsTable(t *ecsTable) {
 	se.ecsTablesLock.Lock()
+	defer se.ecsTablesLock.Unlock()
 	se.ecsTables = append(se.ecsTables, t)
-	se.ecsTablesLock.Unlock()
 }
 
 func (se *SetEcs) addEcsBinding(b *ecsBinding) {
 	se.ecsBindingsLock.Lock()
+	defer se.ecsBindingsLock.Unlock()
 	se.ecsBindings = append(se.ecsBindings, b)
-	se.ecsBindingsLock.Unlock()
 }
 
 // ServeDNS implements the plugin.Handler interface.
@@ -107,6 +107,8 @@ func (se *SetEcs) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 func (se *SetEcs) Name() string { return "setecs" }
 
 func (se *SetEcs) InlineEcsBinding() *ecsBinding {
+	se.ecsBindingsLock.Lock()
+	defer se.ecsBindingsLock.Unlock()
 	for _, binding := range se.ecsBindings {
 		if binding.whichType == ItemTypeInline {
 			return binding
